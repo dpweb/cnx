@@ -26,17 +26,14 @@ var cnx = {
         cp.exec(s, cb);
     },
     mongo: function(u, cb){
-        if(!cb || typeof(cb) === 'function') throw new Error('mongo requires only conn info and callback, returns a conn obj');
+        if(!cb || typeof(cb) !== 'function') throw new Error('mongo requires only conn info and callback, returns a conn obj');
         var conn = mongoskin.db(u, { safe: false });
         cb(conn);
     },
     redis: function(u, p, cb){
-        var ss = url.parse(u), userpass = ss.auth.split(':'), port = ss.path.match(/\:([^\/]*)/)[1];
-        var cl = redis.createClient(port, host);
-        cl.auth(userpass[0]);
-        cl.on('ready', function(e){
-            !p ? cb(cl) : cl.get(p, cb);
-        })
+        var info = u.match(/redis\:\/\/(.*)\:(.*)@(.*)\:(.*)\//);
+        var cl = redis.createClient(info[4], info[3]);
+        cl.auth(info[2]);  p(null, cl);
     }
 }
 
